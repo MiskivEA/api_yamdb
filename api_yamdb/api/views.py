@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from reviews.models import Category, Genre, Title, Review, Comments, User
 from .serializers import (CategorySerializer,
                           GenreSerializer,
@@ -8,6 +8,7 @@ from .serializers import (CategorySerializer,
                           UserSerializer,
                           UserTokenSerializer)
 from .permissions import CommentsReviewPermission
+from rest_framework.generics import CreateAPIView
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -36,10 +37,11 @@ class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
     permission_classes = [CommentsReviewPermission]
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    #permission_classes = permissions.IsAdminUser
+    # permission_classes = permissions.IsAdminUser
 
 
 class UserRegistration(CreateAPIView):
@@ -53,10 +55,10 @@ class UserRegistration(CreateAPIView):
         pass
 """
 
+
 class ConfirmationCode(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserTokenSerializer
 
     def perform_create(self, serializer):
         pass
-

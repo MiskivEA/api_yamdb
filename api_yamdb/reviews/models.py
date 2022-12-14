@@ -19,7 +19,6 @@ class User(AbstractUser):
     bio = models.TextField(max_length=300, blank=True)
     email = models.EmailField(unique=True, max_length=30)
 
-
     def _generate_jwt_token(self):
         """
         Генерирует веб-токен JSON, в котором хранится идентификатор этого
@@ -36,15 +35,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-
-
-class User(AbstractUser):
-    RANKS = (
-        ('user', 'Пользователь'),
-        ('moderator', 'Модератор'),
-        ('admin', 'Администратор'),
-    )
-    role = models.CharField(choices=RANKS, max_length=10, default='user')
 
 
 class Category(models.Model):
