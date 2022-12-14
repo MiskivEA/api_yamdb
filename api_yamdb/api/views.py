@@ -14,5 +14,6 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TitleViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Title.object.all()
+    queryset = Title.objects.all()
     serializer_class = TitleSerializer
+
