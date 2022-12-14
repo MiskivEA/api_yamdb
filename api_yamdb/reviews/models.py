@@ -1,8 +1,11 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 
+import jwt
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+
+from api_yamdb import settings
 
 
 class User(AbstractUser):
@@ -15,8 +18,24 @@ class User(AbstractUser):
     bio = models.TextField(max_length=300, blank=True)
     email = models.EmailField(unique=True, max_length=30)
 
+
+    def _generate_jwt_token(self):
+        """
+        Генерирует веб-токен JSON, в котором хранится идентификатор этого
+        пользователя, срок действия токена составляет 1 день от создания
+        """
+        dt = datetime.now() + timedelta(days=1)
+
+        token = jwt.encode({
+            'id': self.pk,
+            'exp': int(dt.strftime('%s'))
+        }, settings.SECRET_KEY, algorithm='HS256')
+
+        return token.decode('utf-8')
+
     def __str__(self):
         return self.username
+
 
 
 class Category(models.Model):
