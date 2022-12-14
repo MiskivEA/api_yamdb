@@ -4,6 +4,7 @@ import jwt
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import AbstractUser
 
 from api_yamdb import settings
 
@@ -36,6 +37,14 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+
+class User(AbstractUser):
+    RANKS = (
+        ('user', 'Пользователь'),
+        ('moderator', 'Модератор'),
+        ('admin', 'Администратор'),
+    )
+    role = models.CharField(choices=RANKS, max_length=10, default='user')
 
 
 class Category(models.Model):
@@ -78,7 +87,7 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
- 
+
 
 class Review(models.Model):
     id = models.AutoField(primary_key=True)
@@ -123,7 +132,7 @@ class Comments(models.Model):
     text = models.TextField()
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name='comments',
+        related_name='author',
     )
     pub_date = models.DateTimeField(
         'pub_date',
