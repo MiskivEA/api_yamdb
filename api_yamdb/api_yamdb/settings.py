@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from django.contrib.auth import get_user_model
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,10 +25,9 @@ INSTALLED_APPS = [
     'reviews',
     'api',
     'rest_framework',
-    'users.apps.UsersConfig',
 ]
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'reviews.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

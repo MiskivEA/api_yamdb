@@ -1,8 +1,22 @@
 from datetime import date
 
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+
+class User(AbstractUser):
+    RANKS = (
+        ('user', 'Пользователь'),
+        ('moderator', 'Модератор'),
+        ('admin', 'Администратор'),
+    )
+    role = models.CharField(choices=RANKS, max_length=10, default='user')
+    bio = models.TextField(max_length=300, blank=True)
+    email = models.EmailField(unique=True, max_length=30)
+
+    def __str__(self):
+        return self.username
 
 
 class Category(models.Model):
@@ -90,7 +104,7 @@ class Comments(models.Model):
     text = models.TextField()
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name='Автор',
+        related_name='comments',
     )
     pub_date = models.DateTimeField(
         'pub_date',
