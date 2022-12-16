@@ -2,7 +2,8 @@ from datetime import date, datetime, timedelta
 
 import jwt
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import (MinValueValidator,
+                                    MaxValueValidator, RegexValidator)
 from django.contrib.auth.models import AbstractUser
 
 
@@ -10,44 +11,79 @@ from api_yamdb import settings
 
 
 class User(AbstractUser):
-    RANKS = (
+    ROLES = (
         ('user', 'Пользователь'),
         ('moderator', 'Модератор'),
         ('admin', 'Администратор'),
     )
-    role = models.CharField(choices=RANKS, max_length=10, default='user')
-    bio = models.TextField(max_length=300, blank=True)
-    email = models.EmailField(unique=True, max_length=30)
+    username = models.CharField(
+        max_length=150,
+        verbose_name='Имя пользователя',
+        unique=True,
+        validators=[RegexValidator(
+            regex=r'^[\w.@+-]+$')]
+    )
+    email = models.EmailField(
+        max_length=254,
+        verbose_name='email',
+        unique=True
+    )
+    first_name = models.CharField(
+        max_length=150,
+        verbose_name='имя',
+        blank=True
+    )
+    last_name = models.CharField(
+        max_length=150,
+        verbose_name='фамилия',
+        blank=True
+    )
+    bio = models.TextField(
+        verbose_name='биография',
+        blank=True
+    )
+    role = models.CharField(
+        max_length=150,
+        verbose_name='роль',
+        choices=ROLES,
+        default='user'
+    )
 
-    def _generate_jwt_token(self):
-        """
-        Генерирует веб-токен JSON, в котором хранится идентификатор этого
-        пользователя, срок действия токена составляет 1 день от создания
-        """
-        dt = datetime.now() + timedelta(days=1)
+    class Meta:
+        ordering = ('id',)
 
-        token = jwt.encode({
-            'id': self.pk,
-            'exp': int(dt.strftime('%s'))
-        }, settings.SECRET_KEY, algorithm='HS256')
 
-        return token.decode('utf-8')
+
+
 
     def __str__(self):
         return self.username
 
 
+
 class Category(models.Model):
+
     name = models.CharField(max_length=256, verbose_name='Категория')
-    slug = models.SlugField(unique=True, verbose_name='URL')
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$'),
+        verbose_name='URL']
+    )
 
     def __str__(self):
         return self.name
 
 
 class Genre(models.Model):
+
     name = models.CharField(max_length=50, verbose_name='Жанр')
-    slug = models.SlugField(unique=True, verbose_name='URL')
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$'),
+        verbose_name='URL']
+    )
 
     def __str__(self):
         return self.name

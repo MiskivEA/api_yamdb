@@ -50,7 +50,6 @@ class CommentsSerializer(serializers.ModelSerializer):
         model = Comments
         fields = ('id', 'text', 'author', 'pub_date')
 
-
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -63,8 +62,15 @@ class UserSerializer(serializers.ModelSerializer):
                   'role')
 
 
+class UserRegSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+
 class UserTokenSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.CharField(max_length=6)
+
+    confirmation_code = serializers.CharField(max_length=50)
 
     class Meta:
         model = User

@@ -1,5 +1,7 @@
 from django.contrib import admin
+
 from .models import Title, Category, GenreTitle, Genre
+
 
 
 @admin.register(Title)
