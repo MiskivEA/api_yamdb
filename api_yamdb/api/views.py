@@ -1,3 +1,6 @@
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, status
@@ -6,6 +9,7 @@ from django.core.mail import send_mail
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import Token, AccessToken
 from rest_framework import viewsets
+
 
 from reviews.models import Category, Genre, Title, Review, Comments, User
 from .serializers import (CategorySerializer,
@@ -22,11 +26,25 @@ from rest_framework.generics import CreateAPIView, get_object_or_404
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = 'slug'
+
+    @action(detail=False, url_path='slug')
+    def show_category(self, request):
+        category = Title.objects.filter(category='slug')
+        serializer = self.get_serializer(category, many=True)
+        return Response(serializer.data)
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    lookup_field = 'slug'
+
+    @action(detail=False, url_path='slug')
+    def show_category(self, request):
+        genre = Title.objects.filter(category='slug')
+        serializer = self.get_serializer(genre, many=True)
+        return Response(serializer.data)
 
 
 class TitleViewSet(viewsets.ReadOnlyModelViewSet):
