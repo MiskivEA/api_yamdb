@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Title, Category, Genre
+from .models import Title, Category, Genre, User
 
 EMPTY_CONST = '-пусто-'
 
@@ -20,6 +20,8 @@ class TitleAdmin(admin.ModelAdmin):
     empty_value_display = EMPTY_CONST
 
 
+
 # admin.site.register(Title, TitleAdmin)
 admin.site.register(Category)
 admin.site.register(Genre)
+admin.site.register(User)
