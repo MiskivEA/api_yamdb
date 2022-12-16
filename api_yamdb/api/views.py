@@ -54,15 +54,18 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 def registration(request):
     serializer = UserRegSerializer(data=request.data)
+    """
     username_initial = serializer.initial_data.get('username')
     if User.objects.get(username=username_initial):
-        serializer = UserRegSerializer(get_object_or_404(User, username=username_initial), data=request.data)
+        serializer = UserRegSerializer(get_object_or_404(User,
+                                                         username=username_initial),
+                                       data=request.data)
+    """
     if serializer.is_valid():
         serializer.save()
         username = serializer.data.get('username')
         email = serializer.data.get('email')
 
-        #user = User.objects.get_or_create(email=email, username=username)
         user = get_object_or_404(User, email=email, username=username)
         confirmation_code = default_token_generator.make_token(user)
 
