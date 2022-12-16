@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from reviews.models import Category, Genre, Title, Comments, Review, User
+from reviews.models import Category, Genre, Title, Comments, Review, User, GenreTitle
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -9,21 +9,26 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Category
+        lookup_field = 'slug'
+        extra_kwargs = {'url': {'lookup_field': 'slug'}}
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    title = serializers.SlugRelatedField(many=True,
-                                         read_only=True,
-                                         slug_field='titles')
+    # name = serializers.SlugRelatedField(many=True,
+    #                                     read_only=True,
+    #                                     slug_field='titles')
     # TODO жанров может быть много, категория одна (проверить правильность)
-
+    # TODO изменить отображение str вместо slug
     class Meta:
         fields = '__all__'
         model = Genre
+        lookup_field = 'slug'
+        extra_kwargs = {'url': {'lookup_field': 'slug'}}
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    # TODO отображение полей Category и Genre
+    category = serializers.StringRelatedField(read_only=True, default='')
+    genre = serializers.StringRelatedField(read_only=True, default='Жанр не определен')
 
     class Meta:
         fields = '__all__'

@@ -1,4 +1,8 @@
+
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from reviews.models import Category, Genre, Title, Review, Comments, User
 from .serializers import (CategorySerializer,
                           GenreSerializer,
@@ -14,11 +18,25 @@ from rest_framework.generics import CreateAPIView
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = 'slug'
+
+    @action(detail=False, url_path='slug')
+    def show_category(self, request):
+        category = Title.objects.filter(category='slug')
+        serializer = self.get_serializer(category, many=True)
+        return Response(serializer.data)
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    lookup_field = 'slug'
+
+    @action(detail=False, url_path='slug')
+    def show_category(self, request):
+        genre = Title.objects.filter(category='slug')
+        serializer = self.get_serializer(genre, many=True)
+        return Response(serializer.data)
 
 
 class TitleViewSet(viewsets.ReadOnlyModelViewSet):

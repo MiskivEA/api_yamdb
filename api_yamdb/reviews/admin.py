@@ -1,7 +1,5 @@
 from django.contrib import admin
-from .models import Title, Category, Genre
-
-EMPTY_CONST = '-пусто-'
+from .models import Title, Category, GenreTitle, Genre
 
 
 @admin.register(Title)
@@ -11,15 +9,23 @@ class TitleAdmin(admin.ModelAdmin):
         'name',
         'year',
         'description',
-        'genre',
         'category',
     )
-    list_editable = ('genre', 'category')
+    list_editable = ('category',)
     search_fields = ('name',)
     list_filter = ('year',)
-    empty_value_display = EMPTY_CONST
 
 
-# admin.site.register(Title, TitleAdmin)
-admin.site.register(Category)
-admin.site.register(Genre)
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'name')
+    prepopulated_fields = {'slug': ('name',)}
+
+
+admin.site.register(GenreTitle)
+
+
+@admin.register(Genre)
+class GenreAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'name')
+    prepopulated_fields = {'slug': ('name',)}
