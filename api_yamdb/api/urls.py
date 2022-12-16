@@ -29,3 +29,4 @@ urlpatterns = [
     path('v1/auth/signup/', registration),
     path('v1/auth/token/', check_code_and_create_token),
     ]
+

@@ -16,7 +16,7 @@ from .serializers import (CategorySerializer,
                           UserSerializer,
                           UserTokenSerializer, UserRegSerializer)
 from .permissions import CommentsReviewPermission
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, get_object_or_404
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -39,11 +39,36 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [CommentsReviewPermission]
 
+    def get_queryset(self):
+        """Возращает кверисет c отзывами для тайтла"""
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        """Создание отзыва для тайтла,
+        где автором является текущий пользователь."""
+        serializer.save(
+            author=self.request.user,
+            title=self.get_title()
+        )
+
 
 class CommentsViewSet(viewsets.ModelViewSet):
     queryset = Comments.objects.all()
     serializer_class = CommentsSerializer
     permission_classes = [CommentsReviewPermission]
+
+    def get_queryset(self):
+        """Возращает кверисет c комментами для отзыва"""
+        review = get_object_or_404(Title, pk=self.kwargs.get('review_id'))
+        return review.reviews.all()
+
+    def perform_create(self, serializer):
+        """Создание коммента к отзыву текущего юзера"""
+        serializer.save(
+            author=self.request.user,
+            review=self.get_review()
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):
