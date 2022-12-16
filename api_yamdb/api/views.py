@@ -54,6 +54,9 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 def registration(request):
     serializer = UserRegSerializer(data=request.data)
+    username_initial = serializer.initial_data.get('username')
+    if User.objects.get(username=username_initial):
+        serializer = UserRegSerializer(get_object_or_404(User, username=username_initial), data=request.data)
     if serializer.is_valid():
         serializer.save()
         username = serializer.data.get('username')
@@ -62,14 +65,17 @@ def registration(request):
         #user = User.objects.get_or_create(email=email, username=username)
         user = get_object_or_404(User, email=email, username=username)
         confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            'Ваш код подтверждения',
-            f'Ваш код подтверждения: {confirmation_code} \nВаше имя пользователя: {user.username}',
+
+        mail = (
+            'Подтверждение регистрации',
+            f'Ваше имя пользователя: {user.username} \n'
+            f'Ваш код подтверждения: {confirmation_code}',
             f'from@example.com',
-            ['Yandex@yandex.com',],
-            fail_silently=False,
+            ['Yandex@yandex.com', ]
         )
-        return Response(serializer.data)
+        send_mail(*mail, fail_silently=False)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -85,8 +91,3 @@ def check_code_and_create_token(request):
         return Response({'token': str(jwt_token)}, status=status.HTTP_200_OK)
     print('ОШИБКА АВТОРИЗАЦИИ - НЕ СОВПАДАЮТ ТОКЕНЫ')
     return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
