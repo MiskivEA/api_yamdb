@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from django.core.mail import send_mail
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import Token, AccessToken
+from rest_framework import viewsets
 
 from reviews.models import Category, Genre, Title, Review, Comments, User
 from .serializers import (CategorySerializer,
@@ -15,6 +16,7 @@ from .serializers import (CategorySerializer,
                           UserSerializer,
                           UserTokenSerializer, UserRegSerializer)
 from .permissions import CommentsReviewPermission
+from rest_framework.generics import CreateAPIView
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,11 +45,11 @@ class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
     permission_classes = [CommentsReviewPermission]
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    #permission_classes = permissions.IsAdminUser
-
+    # permission_classes = permissions.IsAdminUser
 
 
 
@@ -94,3 +96,4 @@ def check_code_and_create_token(request):
         return Response({'token': str(jwt_token)}, status=status.HTTP_200_OK)
     print('ОШИБКА АВТОРИЗАЦИИ - НЕ СОВПАДАЮТ ТОКЕНЫ')
     return Response(status=status.HTTP_400_BAD_REQUEST)
+
