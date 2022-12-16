@@ -1,4 +1,11 @@
-from rest_framework import viewsets, permissions
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import api_view
+from rest_framework.generics import CreateAPIView
+from django.core.mail import send_mail
+from rest_framework.response import Response
+
 from reviews.models import Category, Genre, Title, Review, Comments, User
 from .serializers import (CategorySerializer,
                           GenreSerializer,
@@ -6,7 +13,7 @@ from .serializers import (CategorySerializer,
                           CommentsSerializer,
                           ReviewSerializer,
                           UserSerializer,
-                          UserTokenSerializer)
+                          UserTokenSerializer, UserRegSerializer)
 from .permissions import CommentsReviewPermission
 
 
@@ -42,21 +49,54 @@ class UserViewSet(viewsets.ModelViewSet):
     #permission_classes = permissions.IsAdminUser
 
 
+
+
+@api_view(['POST'])
+def registration(request):
+    serializer = UserRegSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        username = serializer.data.get('username')
+        email = serializer.data.get('email')
+
+        #user = User.objects.get_or_create(email=email, username=username)
+        user = get_object_or_404(User, email=email, username=username)
+        confirmation_code = default_token_generator.make_token(user)
+
+        send_mail(
+            'Ваш код подтверждения',
+            f'Ваш код подтверждения: {confirmation_code}',
+            f'from@example.com',
+            ['Yandex@yandex.com',],
+            fail_silently=False,
+        )
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+"""
 class UserRegistration(CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserRegSerializer
 
 
-"""
+
     def perform_create(self, serializer):
-        Тут наверное реализовать отпрвку сообщений
-        pass
-"""
+        Тут наверное реализовать отпрfвку сообщений
+        send_mail(
+            'Тема письма', #code
+            'Текст письма.', #code
+            'from@example.com',  # Это поле "От кого"
+            ['to@example.com'],  # Это поле "Кому"
+            fail_silently=False,  # Сообщать об ошибках («молчать ли об ошибках?»)
+        )
+        serializer.save()
+
 
 class ConfirmationCode(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserTokenSerializer
 
     def perform_create(self, serializer):
-        pass
-
+        а тут генеарция токена и как то его нужно еще отдать"""
