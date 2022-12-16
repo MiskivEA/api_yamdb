@@ -18,7 +18,20 @@ class User(AbstractUser):
     role = models.CharField(choices=RANKS, max_length=10, default='user')
     bio = models.TextField(max_length=300, blank=True)
     email = models.EmailField(unique=True, max_length=30)
-    last_login = models.DateTimeField(blank=True, null=True)
+
+    def generate_jwt_token(self):
+        """
+        Генерирует веб-токен JSON, в котором хранится идентификатор этого
+        пользователя, срок действия токена составляет 1 день от создания
+        """
+        dt = datetime.now() + timedelta(days=1)
+
+        token = jwt.encode({
+            'id': self.pk,
+            'exp': int(dt.strftime('%s'))
+        }, settings.SECRET_KEY, algorithm='HS256')
+
+        return token.decode('utf-8')
 
 
 class Category(models.Model):

@@ -2,9 +2,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view
-from rest_framework.generics import CreateAPIView
 from django.core.mail import send_mail
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import Token, AccessToken
 
 from reviews.models import Category, Genre, Title, Review, Comments, User
 from .serializers import (CategorySerializer,
@@ -62,10 +62,9 @@ def registration(request):
         #user = User.objects.get_or_create(email=email, username=username)
         user = get_object_or_404(User, email=email, username=username)
         confirmation_code = default_token_generator.make_token(user)
-
         send_mail(
             'Ваш код подтверждения',
-            f'Ваш код подтверждения: {confirmation_code}',
+            f'Ваш код подтверждения: {confirmation_code} \n Имя пользователя: {user.username}',
             f'from@example.com',
             ['Yandex@yandex.com',],
             fail_silently=False,
@@ -74,29 +73,20 @@ def registration(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+def check_code_and_create_token(request):
+    serializer = UserTokenSerializer(data=request.data)
+    username = serializer.initial_data.get('username')
+    confirmation_code = serializer.initial_data.get('confirmation_code')
 
-"""
-class UserRegistration(CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserRegSerializer
-
-
-
-    def perform_create(self, serializer):
-        Тут наверное реализовать отпрfвку сообщений
-        send_mail(
-            'Тема письма', #code
-            'Текст письма.', #code
-            'from@example.com',  # Это поле "От кого"
-            ['to@example.com'],  # Это поле "Кому"
-            fail_silently=False,  # Сообщать об ошибках («молчать ли об ошибках?»)
-        )
-        serializer.save()
+    user = get_object_or_404(User, username=username)
+    if default_token_generator.check_token(user, confirmation_code):
+        jwt_token = AccessToken.for_user(user)
+        return Response({'token': str(jwt_token)})
+    print('ОШИБКА АВТОРИЗАЦИИ - НЕ СОВПАДАЮТ ТОКЕНЫ')
+    return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class ConfirmationCode(CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserTokenSerializer
 
-    def perform_create(self, serializer):
-        а тут генеарция токена и как то его нужно еще отдать"""
+
+

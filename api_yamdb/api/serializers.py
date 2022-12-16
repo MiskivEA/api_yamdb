@@ -59,7 +59,7 @@ class UserRegSerializer(serializers.ModelSerializer):
 
 
 class UserTokenSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.CharField(max_length=6)
+    confirmation_code = serializers.CharField(max_length=50)
     class Meta:
         model = User
         fields = ('username', 'confirmation_code')
