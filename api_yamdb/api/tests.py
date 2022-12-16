@@ -1,3 +1,3 @@
-from django.test import TestCase
+from django.contrib.auth.tokens import default_token_generator
 
-# Create your tests here.
+confirmation_code = default_token_generator.make_token(user)

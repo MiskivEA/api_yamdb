@@ -52,22 +52,13 @@ class User(AbstractUser):
     class Meta:
         ordering = ('id',)
 
-    def _generate_jwt_token(self):
-        """
-        Генерирует веб-токен JSON, в котором хранится идентификатор этого
-        пользователя, срок действия токена составляет 1 день от создания
-        """
-        dt = datetime.now() + timedelta(days=1)
 
-        token = jwt.encode({
-            'id': self.pk,
-            'exp': int(dt.strftime('%s'))
-        }, settings.SECRET_KEY, algorithm='HS256')
 
-        return token.decode('utf-8')
+
 
     def __str__(self):
         return self.username
+
 
 
 class Category(models.Model):
