@@ -28,5 +28,4 @@ urlpatterns = [
     path('v1/', include(router_v1.urls)),
     path('v1/auth/signup/', registration),
     path('v1/auth/token/', check_code_and_create_token),
-    ]
-
+]

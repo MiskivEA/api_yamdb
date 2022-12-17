@@ -1,55 +1,62 @@
-from rest_framework import viewsets
+from django.db.models import Avg
+from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, permissions, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from django.core.mail import send_mail
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import Token, AccessToken
+from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework import viewsets
+from rest_framework import permissions
 
 
 from reviews.models import Category, Genre, Title, Review, Comments, User
 from .serializers import (CategorySerializer,
                           GenreSerializer,
-                          TitleSerializer,
+                          TitlePostSerializer,
+                          TitleGetSerializer,
                           CommentsSerializer,
                           ReviewSerializer,
                           UserSerializer,
                           UserTokenSerializer, UserRegSerializer)
-from .permissions import CommentsReviewPermission
-from rest_framework.generics import CreateAPIView, get_object_or_404
+from .permissions import CommentsReviewPermission, AnonimUserAdminPermission
+from .filters import TitleFilter
+from rest_framework.generics import get_object_or_404
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
-
-    @action(detail=False, url_path='slug')
-    def show_category(self, request):
-        category = Title.objects.filter(category='slug')
-        serializer = self.get_serializer(category, many=True)
-        return Response(serializer.data)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name',)
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
-
-    @action(detail=False, url_path='slug')
-    def show_category(self, request):
-        genre = Title.objects.filter(category='slug')
-        serializer = self.get_serializer(genre, many=True)
-        return Response(serializer.data)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name',)
 
 
-class TitleViewSet(viewsets.ReadOnlyModelViewSet):
+class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+    permission_classes = (AnonimUserAdminPermission,)
+
+    def get_queryset(self):
+        return Title.objects.all().annotate(rating=Avg('reviews__score'),)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return TitlePostSerializer
+        return TitleGetSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -95,6 +102,19 @@ class UserViewSet(viewsets.ModelViewSet):
     # permission_classes = permissions.IsAdminUser
 
 
+@action(detail=False,
+        methods=['get', 'patch'],
+        permission_classes=[permissions.IsAuthenticated])
+def me(self, request, username):
+    user = get_object_or_404(User, username=username)
+    if request.method == 'PATCH':
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    serializer = UserSerializer(user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 def registration(request):
@@ -118,7 +138,7 @@ def registration(request):
             'Подтверждение регистрации',
             f'Ваше имя пользователя: {user.username} \n'
             f'Ваш код подтверждения: {confirmation_code}',
-            f'from@example.com',
+            'from@example.com',
             ['Yandex@yandex.com', ]
         )
         send_mail(*mail, fail_silently=False)
@@ -139,4 +159,3 @@ def check_code_and_create_token(request):
         return Response({'token': str(jwt_token)}, status=status.HTTP_200_OK)
     print('ОШИБКА АВТОРИЗАЦИИ - НЕ СОВПАДАЮТ ТОКЕНЫ')
     return Response(status=status.HTTP_400_BAD_REQUEST)
-

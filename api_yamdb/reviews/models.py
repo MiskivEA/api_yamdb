@@ -1,13 +1,8 @@
-from datetime import date, datetime, timedelta
-
-import jwt
+from datetime import date
 from django.db import models
 from django.core.validators import (MinValueValidator,
                                     MaxValueValidator, RegexValidator)
 from django.contrib.auth.models import AbstractUser
-
-
-from api_yamdb import settings
 
 
 class User(AbstractUser):
@@ -52,13 +47,8 @@ class User(AbstractUser):
     class Meta:
         ordering = ('id',)
 
-
-
-
-
     def __str__(self):
         return self.username
-
 
 
 class Category(models.Model):
@@ -67,8 +57,8 @@ class Category(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$'),
-        verbose_name='URL']
+        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$')],
+        verbose_name='URL'
     )
 
     def __str__(self):
@@ -81,8 +71,8 @@ class Genre(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$'),
-        verbose_name='URL']
+        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$')],
+        verbose_name='URL'
     )
 
     def __str__(self):
