@@ -7,13 +7,13 @@ class CategorySerializer(serializers.ModelSerializer):
                                          slug_field='titles')
 
     class Meta:
-        fields = '__all__'
+        fields = ['name', 'slug']
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
+        fields = ['name', 'slug']
         model = Genre
 
 
@@ -78,16 +78,22 @@ class UserSerializer(serializers.ModelSerializer):
                   'bio',
                   'role')
 
+    def validate(self, data):
+        if data.get('username') == 'me':
+            raise serializers.ValidationError(
+                'Username указан неверно!')
+        return data
+
 
 class UserRegSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('username', 'email')
 
 
 class UserTokenSerializer(serializers.ModelSerializer):
-
-    confirmation_code = serializers.CharField(max_length=50)
+    confirmation_code = serializers.CharField(max_length=50, required=True)
 
     class Meta:
         model = User

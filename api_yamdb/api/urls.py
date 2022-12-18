@@ -8,6 +8,7 @@ from .views import (CategoryViewSet,
                     UserViewSet,
                     registration, check_code_and_create_token)
 
+app_name = 'api'
 
 router_v1 = DefaultRouter()
 router_v1.register(r'users', UserViewSet)
@@ -26,6 +27,6 @@ router_v1.register(
 
 urlpatterns = [
     path('v1/', include(router_v1.urls)),
-    path('v1/auth/signup/', registration),
-    path('v1/auth/token/', check_code_and_create_token),
+    path('v1/auth/signup/', registration, name='reg'),
+    path('v1/auth/token/', check_code_and_create_token, name='token'),
 ]
