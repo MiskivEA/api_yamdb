@@ -13,6 +13,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from rest_framework import viewsets
 from rest_framework.permissions import (IsAuthenticated)
+from rest_framework.pagination import PageNumberPagination
 
 
 from reviews.models import Category, Genre, Title, Review, Comments, User
@@ -107,23 +108,27 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminPermission]
+    lookup_field = 'username'
+    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('username',)
 
     @action(
         detail=False,
-        methods=['GET', 'PATCH'],
+        methods=['GET', 'PATCH', 'PUT'],
         permission_classes=[IsAuthenticated]
     )
     def me(self, request):
         user = request.user
+        if request.method == 'PUT':
+            serializer = self.get_serializer(user, data=request.data, partial=True)
+            return Response(serializer.errors, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         serializer = self.get_serializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-
         serializer.save(role=user.role, partial=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
