@@ -14,6 +14,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework import viewsets
 from rest_framework.permissions import (IsAuthenticated)
 from rest_framework.pagination import PageNumberPagination
+from rest_framework import mixins
 
 
 from reviews.models import Category, Genre, Title, Review, Comments, User
@@ -33,7 +34,14 @@ from .filters import TitleFilter
 from rest_framework.generics import get_object_or_404
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class MyViewSet(
+    mixins.CreateModelMixin, mixins.DestroyModelMixin,
+    mixins.ListModelMixin, viewsets.GenericViewSet
+):
+    pass
+
+
+class CategoryViewSet(MyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [AdminOrReadOnly]
@@ -42,7 +50,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name',)
 
 
-class GenreViewSet(viewsets.ReadOnlyModelViewSet):
+class GenreViewSet(MyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [AdminOrReadOnly]
@@ -104,7 +112,9 @@ class CommentsViewSet(viewsets.ModelViewSet):
         )
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
+                  mixins.ListModelMixin, mixins.DestroyModelMixin,
+                  viewsets.GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminPermission]
@@ -115,27 +125,26 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        methods=['GET', 'PATCH', 'PUT'],
+        methods=['GET', 'PATCH'],
         permission_classes=[IsAuthenticated]
     )
     def me(self, request):
         user = request.user
-        if request.method == 'PUT':
-            serializer = self.get_serializer(user, data=request.data, partial=True)
-            return Response(serializer.errors, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=user.role, partial=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'PATCH':
+            serializer = self.get_serializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(role=user.role, partial=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 def registration(request):
     serializer = UserRegSerializer(data=request.data)
+    if request.data.get('username') == 'me':
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     if serializer.is_valid():
         serializer.save()
         username = serializer.data.get('username')
@@ -148,7 +157,7 @@ def registration(request):
             f'Ваше имя пользователя: {user.username} \n'
             f'Ваш код подтверждения: {confirmation_code}',
             'from@example.com',
-            ['Yandex@yandex.com', ]
+            [user.email, ]
         )
         send_mail(*mail, fail_silently=False)
 

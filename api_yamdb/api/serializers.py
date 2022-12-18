@@ -3,12 +3,10 @@ from reviews.models import Category, Genre, Title, Comments, Review, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    title = serializers.SlugRelatedField(read_only=True,
-                                         slug_field='titles')
-
     class Meta:
-        fields = ['name', 'slug']
         model = Category
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -27,6 +25,7 @@ class TitlePostSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         slug_field='slug'
     )
+    rating = serializers.IntegerField(required=False)
 
     class Meta:
         fields = (
@@ -54,10 +53,12 @@ class TitleGetSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
+    title = serializers.SlugRelatedField(
+        read_only=True, slug_field='id')
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        fields = ('title', 'id', 'text', 'author', 'score', 'pub_date')
 
 
 class CommentsSerializer(serializers.ModelSerializer):
