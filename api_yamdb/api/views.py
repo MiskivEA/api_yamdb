@@ -107,6 +107,8 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminPermission]
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('username',)
 
 
 @action(detail=False,
@@ -126,18 +128,10 @@ def me(self, request, username):
 @api_view(['POST'])
 def registration(request):
     serializer = UserRegSerializer(data=request.data)
-    """
-    username_initial = serializer.initial_data.get('username')
-    if User.objects.get(username=username_initial):
-        serializer = UserRegSerializer(get_object_or_404(User,
-                                                         username=username_initial),
-                                       data=request.data)
-    """
     if serializer.is_valid():
         serializer.save()
         username = serializer.data.get('username')
         email = serializer.data.get('email')
-
         user = get_object_or_404(User, email=email, username=username)
         confirmation_code = default_token_generator.make_token(user)
 
