@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from rest_framework import viewsets
-from rest_framework import permissions
+from rest_framework.permissions import (IsAuthenticated)
 
 
 from reviews.models import Category, Genre, Title, Review, Comments, User
@@ -110,19 +110,22 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('username',)
 
+    @action(
+        detail=False,
+        methods=['GET', 'PATCH'],
+        permission_classes=[IsAuthenticated]
+    )
+    def me(self, request):
+        user = request.user
+        if request.method == 'GET':
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-@action(detail=False,
-        methods=['get', 'patch'],
-        permission_classes=[permissions.IsAuthenticated])
-def me(self, request, username):
-    user = get_object_or_404(User, username=username)
-    if request.method == 'PATCH':
-        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer = self.get_serializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+
+        serializer.save(role=user.role, partial=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    serializer = UserSerializer(user)
-    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
