@@ -1,4 +1,5 @@
 from datetime import date
+
 from django.db import models
 from django.core.validators import (MinValueValidator,
                                     MaxValueValidator, RegexValidator)
@@ -134,9 +135,9 @@ class Review(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.ForeignKey(
         Title,
-        verbose_name='titles',
+        verbose_name='Произведение',
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
     text = models.TextField()
     author = models.ForeignKey(
@@ -152,9 +153,13 @@ class Review(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        ordering = ['pub_date']
         constraints = [
             models.UniqueConstraint(
-                fields=["title", "author"], name="unique_review"
+                fields=['title', 'author'],
+                name='unique_review'
             ),
         ]
 
