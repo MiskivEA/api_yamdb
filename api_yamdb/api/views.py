@@ -88,10 +88,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Создание отзыва для тайтла,
         где автором является текущий пользователь."""
-        serializer.save(
-            author=self.request.user,
-            title=self.get_title()
-        )
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
@@ -101,15 +99,17 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Возращает кверисет c комментами для отзыва"""
-        review = get_object_or_404(Title, pk=self.kwargs.get('review_id'))
-        return review.reviews.all()
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        review = get_object_or_404(
+            title.reviews, id=self.kwargs.get('review_id'))
+        return review.comments.all()
 
     def perform_create(self, serializer):
         """Создание коммента к отзыву текущего юзера"""
-        serializer.save(
-            author=self.request.user,
-            review=self.get_review()
-        )
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        review = get_object_or_404(
+            title.reviews, id=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, review=review)
 
 
 class UserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
@@ -133,11 +133,10 @@ class UserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        if request.method == 'PATCH':
-            serializer = self.get_serializer(user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save(role=user.role, partial=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=user.role, partial=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
