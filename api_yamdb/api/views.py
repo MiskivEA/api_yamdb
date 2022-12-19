@@ -1,10 +1,10 @@
-from rest_framework import viewsets, filters, mixins, status
+from rest_framework import viewsets, filters, mixins, status, permissions
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import (IsAuthenticated)
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import AccessToken
 
 from django.contrib.auth.tokens import default_token_generator
@@ -142,11 +142,12 @@ class UserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
 
 
 @api_view(['POST'])
+@permission_classes([permissions.AllowAny])
 def registration(request):
     serializer = UserRegSerializer(data=request.data)
     if request.data.get('username') == 'me':
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    if serializer.is_valid():
+    if serializer.is_valid(raise_exception=True):
         serializer.save()
         username = serializer.data.get('username')
         email = serializer.data.get('email')
@@ -167,11 +168,12 @@ def registration(request):
 
 
 @api_view(['POST'])
+@permission_classes([permissions.AllowAny])
 def check_code_and_create_token(request):
     serializer = UserTokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
     username = serializer.initial_data.get('username')
     confirmation_code = serializer.initial_data.get('confirmation_code')
-
     user = get_object_or_404(User, username=username)
     if default_token_generator.check_token(user, confirmation_code):
         jwt_token = AccessToken.for_user(user)
