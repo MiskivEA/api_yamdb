@@ -4,9 +4,6 @@ from django.db import models
 from django.core.validators import (MinValueValidator,
                                     MaxValueValidator, RegexValidator)
 from django.contrib.auth.models import AbstractUser
-from django.shortcuts import get_object_or_404
-
-from rest_framework.exceptions import ValidationError
 
 
 class User(AbstractUser):
@@ -138,7 +135,7 @@ class Review(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.ForeignKey(
         Title,
-        verbose_name='titles',
+        verbose_name='Произведение',
         on_delete=models.CASCADE,
         related_name='reviews',
     )
@@ -159,18 +156,12 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ['pub_date']
-
-    def validate(self, data):
-        request = self.context['request']
-        author = request.user
-        title_id = self.context['view'].kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        if request.method == 'POST':
-            if Review.objects.filter(title=title, author=author).exists():
-                raise ValidationError(
-                    'Вы не можете повторно подписаться на автора'
-                )
-        return data
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_review'
+            ),
+        ]
 
     def __str__(self):
         return self.text
