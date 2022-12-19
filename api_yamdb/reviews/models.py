@@ -45,15 +45,6 @@ class User(AbstractUser):
         default='user'
     )
 
-    class Meta:
-        ordering = ('id',)
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_username_email'
-            )
-        ]
-
     def __str__(self):
         return self.username
 

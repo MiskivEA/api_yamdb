@@ -147,13 +147,12 @@ def registration(request):
     serializer = UserRegSerializer(data=request.data)
     if request.data.get('username') == 'me':
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    if serializer.is_valid(raise_exception=True):
+    if serializer.is_valid():
         serializer.save()
         username = serializer.data.get('username')
         email = serializer.data.get('email')
         user = get_object_or_404(User, email=email, username=username)
         confirmation_code = default_token_generator.make_token(user)
-
         mail = (
             'Подтверждение регистрации',
             f'Ваше имя пользователя: {user.username} \n'
@@ -178,5 +177,4 @@ def check_code_and_create_token(request):
     if default_token_generator.check_token(user, confirmation_code):
         jwt_token = AccessToken.for_user(user)
         return Response({'token': str(jwt_token)}, status=status.HTTP_200_OK)
-    print('ОШИБКА АВТОРИЗАЦИИ - НЕ СОВПАДАЮТ ТОКЕНЫ')
     return Response(status=status.HTTP_400_BAD_REQUEST)

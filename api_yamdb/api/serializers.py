@@ -108,6 +108,23 @@ class UserRegSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email')
 
+    def validate_username(self, data):
+        if User.objects.filter(username=data).exists():
+            raise ValidationError(
+                {
+                    'username':
+                    'Пользователь с данным username уже зарегистрирован.'
+                },
+            )
+        if User.objects.filter(email=data).exists():
+            raise serializers.ValidationError(
+                {
+                    'email':
+                    'Пользователь с данным email уже зарегистрирован.'
+                },
+            )
+        return data
+
 
 class UserTokenSerializer(serializers.ModelSerializer):
     confirmation_code = serializers.CharField(max_length=50, required=True)
