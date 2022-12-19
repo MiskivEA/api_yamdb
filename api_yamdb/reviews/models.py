@@ -1,13 +1,9 @@
-from datetime import date, datetime, timedelta
+from datetime import date
 
-import jwt
 from django.db import models
 from django.core.validators import (MinValueValidator,
                                     MaxValueValidator, RegexValidator)
 from django.contrib.auth.models import AbstractUser
-
-
-from api_yamdb import settings
 
 
 class User(AbstractUser):
@@ -48,13 +44,26 @@ class User(AbstractUser):
         choices=ROLES,
         default='user'
     )
+    
 
-    class Meta:
-        ordering = ('id',)
 
     def __str__(self):
         return self.username
 
+    @property
+    def is_user(self):
+        return self.role == 'user'
+
+    @property
+    def is_moderator(self):
+        return self.role == 'moderator'
+
+    @property
+    def is_admin(self):
+        return (
+            self.role == 'admin'
+            or self.is_superuser
+        )
 
 class Category(models.Model):
 
@@ -129,12 +138,13 @@ class GenreTitle(models.Model):
 
 class Review(models.Model):
     id = models.AutoField(primary_key=True)
-    title_id = models.ForeignKey(
+    title = models.ForeignKey(
         Title,
-        verbose_name='titles',
+        verbose_name='Произведение',
         on_delete=models.CASCADE,
         related_name='reviews',
         db_column='title_id',
+
     )
     text = models.TextField()
     author = models.ForeignKey(
@@ -150,9 +160,13 @@ class Review(models.Model):
     )
 
     class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        ordering = ['pub_date']
         constraints = [
             models.UniqueConstraint(
-                fields=["title_id", "author"], name="unique_review"
+                fields=['title', 'author'],
+                name='unique_review'
             ),
         ]
 
@@ -162,7 +176,7 @@ class Review(models.Model):
 
 class Comments(models.Model):
     id = models.AutoField(primary_key=True)
-    review_id = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         verbose_name='Дата публикации',
         related_name='comments',
