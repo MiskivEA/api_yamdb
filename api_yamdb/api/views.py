@@ -1,20 +1,17 @@
-from django.db.models import Avg
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, mixins, status
+
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import (IsAuthenticated)
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import api_view
+from rest_framework_simplejwt.tokens import AccessToken
+
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status
-from rest_framework.decorators import api_view
+from django.db.models import Avg
 from django.core.mail import send_mail
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken
-
-from rest_framework import viewsets
-from rest_framework.permissions import (IsAuthenticated)
-from rest_framework.pagination import PageNumberPagination
-from rest_framework import mixins
 
 
 from reviews.models import Category, Genre, Title, Review, Comments, User
@@ -31,7 +28,6 @@ from .permissions import (CommentsReviewPermission,
                           AdminOrReadOnly,
                           IsAdminPermission)
 from .filters import TitleFilter
-from rest_framework.generics import get_object_or_404
 
 
 class MyViewSet(
@@ -133,10 +129,16 @@ class UserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=user.role, partial=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == "PATCH":
+            serializer = self.get_serializer(
+                user,
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(role=user.role, partial=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['POST'])
