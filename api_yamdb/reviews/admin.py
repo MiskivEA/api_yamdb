@@ -1,13 +1,52 @@
 from django.contrib import admin
 
-from .models import Title, Category, GenreTitle, Genre
+from .models import Title, Category, GenreTitle, Genre, User, Comments, Review
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
 
+
+class UserResource(resources.ModelResource):
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+
+@admin.register(User)
+class UserAdmin(ImportExportModelAdmin):
+    resource_classes = [UserResource]
+    list_display = (
+        'username',
+        'email',
+        'role',
+        'bio',
+        'first_name',
+        'last_name',
+    )
+
+
+class TitleResource(resources.ModelResource):
+    class Meta:
+        model = Title
+        fields = ('id',
+                  'name',
+                  'year',
+                  'description',
+                  'category',
+                  'genre')
 
 
 @admin.register(Title)
-class TitleAdmin(admin.ModelAdmin):
+class TitleAdmin(ImportExportModelAdmin):
     list_display = (
-        'pk',
+        'id',
         'name',
         'year',
         'description',
@@ -18,16 +57,80 @@ class TitleAdmin(admin.ModelAdmin):
     list_filter = ('year',)
 
 
+class CategoryResource(resources.ModelResource):
+    class Meta:
+        Model = Category
+        fields = ('id', 'name', 'slug')
+
+
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name')
-    prepopulated_fields = {'slug': ('name',)}
+class CategoryAdmin(ImportExportModelAdmin):
+    list_display = ('name', 'slug')
 
 
-admin.site.register(GenreTitle)
+class GenreResource(resources.ModelResource):
+    class Meta:
+        model = Genre
+        fields = ('id', 'name', 'slug')
 
 
 @admin.register(Genre)
-class GenreAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name')
-    prepopulated_fields = {'slug': ('name',)}
+class GenreAdmin(ImportExportModelAdmin):
+    list_display = ('name', 'slug')
+
+
+class GenreTitleResource(resources.ModelResource):
+    class Meta:
+        Model = GenreTitle
+        fields = ('id', 'title_id', 'genre_id')
+
+
+@admin.register(GenreTitle)
+class GenreTitleAdmin(ImportExportModelAdmin):
+    # resource_classes = GenreTitleResource
+    list_display = ('title_id', 'genre_id')
+
+
+class CommentResource(resources.ModelResource):
+    class Meta:
+        model = Comments
+        fields = ('id',
+                  'review_id',
+                  'text',
+                  'author',
+                  'pub_date',
+                  )
+
+
+@admin.register(Comments)
+class CommentAdmin(ImportExportModelAdmin):
+    list_display = (
+        'review_id',
+        'text',
+        'author',
+        'pub_date',
+    )
+
+
+class ReviewResource(resources.ModelResource):
+    class Meta:
+        model = Review
+        fields = ('id',
+                  'title_id',
+                  'text',
+                  'author',
+                  'score',
+                  'pub_date',
+                  )
+
+
+@admin.register(Review)
+class ReviewAdmin(ImportExportModelAdmin):
+    list_display = (
+        'title_id',
+        'text',
+        'author',
+        'score',
+        'pub_date'
+    )
+

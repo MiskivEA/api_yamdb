@@ -59,8 +59,7 @@ class User(AbstractUser):
 class Category(models.Model):
 
     name = models.CharField(max_length=256,
-                            verbose_name='Категория',
-                            )
+                            verbose_name='Категория',)
     slug = models.SlugField(
         max_length=50,
         unique=True,
@@ -74,7 +73,8 @@ class Category(models.Model):
 
 class Genre(models.Model):
 
-    name = models.CharField(max_length=50, verbose_name='Жанр')
+    name = models.CharField(max_length=50,
+                            verbose_name='Жанр', )
     slug = models.SlugField(
         max_length=50,
         unique=True,
@@ -123,17 +123,18 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
-    title = models.ForeignKey(Title, on_delete=models.CASCADE)
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    title_id = models.ForeignKey(Title, on_delete=models.CASCADE, db_column='title_id')
+    genre_id = models.ForeignKey(Genre, on_delete=models.CASCADE, db_column='genre_id')
 
 
 class Review(models.Model):
     id = models.AutoField(primary_key=True)
-    title = models.ForeignKey(
+    title_id = models.ForeignKey(
         Title,
         verbose_name='titles',
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
+        db_column='title_id',
     )
     text = models.TextField()
     author = models.ForeignKey(
@@ -151,7 +152,7 @@ class Review(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["title", "author"], name="unique_review"
+                fields=["title_id", "author"], name="unique_review"
             ),
         ]
 
@@ -161,11 +162,12 @@ class Review(models.Model):
 
 class Comments(models.Model):
     id = models.AutoField(primary_key=True)
-    review = models.ForeignKey(
+    review_id = models.ForeignKey(
         Review,
         verbose_name='Дата публикации',
         related_name='comments',
         on_delete=models.CASCADE,
+        db_column='review_id'
     )
     text = models.TextField()
     author = models.ForeignKey(

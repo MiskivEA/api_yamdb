@@ -14,7 +14,7 @@ from rest_framework import viewsets
 from reviews.models import Category, Genre, Title, Review, Comments, User
 from .serializers import (CategorySerializer,
                           GenreSerializer,
-                          TitleSerializer,
+                          TitleGetSerializer,
                           CommentsSerializer,
                           ReviewSerializer,
                           UserSerializer,
@@ -49,7 +49,7 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TitleViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    serializer_class = TitleGetSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
