@@ -52,23 +52,20 @@ class User(AbstractUser):
     class Meta:
         ordering = ('id',)
 
-
-
-
-
     def __str__(self):
         return self.username
 
 
-
 class Category(models.Model):
 
-    name = models.CharField(max_length=256, verbose_name='Категория')
+    name = models.CharField(max_length=256,
+                            verbose_name='Категория',
+                            )
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$'),
-        verbose_name='URL']
+        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$')],
+        verbose_name='URL'
     )
 
     def __str__(self):
@@ -81,8 +78,8 @@ class Genre(models.Model):
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$'),
-        verbose_name='URL']
+        validators=[RegexValidator(regex=r'^[-a-zA-Z0-9_]+$')],
+        verbose_name='URL'
     )
 
     def __str__(self):
@@ -90,22 +87,33 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=128, verbose_name='Название')
-    year = models.IntegerField(default=1,
-                               validators=[
-                                   MaxValueValidator(date.today().year),
-                                   MinValueValidator(1)
-                               ],
-                               verbose_name='Дата выхода')
-    description = models.TextField(max_length=256, verbose_name='Описание')
-    genre = models.ManyToManyField(Genre,
-                                   related_name='genres',
-                                   through='GenreTitle',
-                                   blank=True)
-    category = models.ForeignKey(Category,
-                                 default='Категория не определена',
-                                 on_delete=models.SET_DEFAULT,
-                                 related_name='titles')
+    name = models.CharField(max_length=128,
+                            verbose_name='Название',
+                            )
+    year = models.IntegerField(
+        default=1,
+        validators=[
+            MaxValueValidator(date.today().year),
+            MinValueValidator(1)
+        ],
+        verbose_name='Дата выхода',
+    )
+    description = models.TextField(
+        max_length=256,
+        verbose_name='Описание',
+    )
+    genre = models.ManyToManyField(
+        Genre,
+        related_name='genres',
+        through='GenreTitle',
+        blank=True,
+    )
+    category = models.ForeignKey(
+        Category,
+        default='Категория не определена',
+        on_delete=models.SET_DEFAULT,
+        related_name='titles',
+    )
 
     class Meta:
         ordering = ('year',)

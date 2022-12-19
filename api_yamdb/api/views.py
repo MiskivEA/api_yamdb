@@ -95,7 +95,6 @@ class UserViewSet(viewsets.ModelViewSet):
     # permission_classes = permissions.IsAdminUser
 
 
-
 @api_view(['POST'])
 def registration(request):
     serializer = UserRegSerializer(data=request.data)

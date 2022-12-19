@@ -4,7 +4,9 @@ from reviews.models import Category, Genre, Title, Comments, Review, User, Genre
 
 class CategorySerializer(serializers.ModelSerializer):
     title = serializers.SlugRelatedField(read_only=True,
-                                         slug_field='titles')
+                                         slug_field='slug',
+                                         queryset=Category.objects.all(),
+                                         )
 
     class Meta:
         fields = '__all__'
@@ -14,9 +16,11 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    # name = serializers.SlugRelatedField(many=True,
-    #                                     read_only=True,
-    #                                     slug_field='titles')
+    name = serializers.StringRelatedField(many=True,
+                                          read_only=True,
+                                          slug_field='slug',
+                                          queryset=Genre.objects.all(),
+                                          )
     # TODO жанров может быть много, категория одна (проверить правильность)
     # TODO изменить отображение str вместо slug
     class Meta:
@@ -28,7 +32,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField(read_only=True, default='')
-    genre = serializers.StringRelatedField(read_only=True, default='Жанр не определен')
+    genre = GenreSerializer(read_only=True, default='Жанр не определен')
 
     class Meta:
         fields = '__all__'
@@ -49,6 +53,7 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comments
         fields = ('id', 'text', 'author', 'pub_date')
+
 
 class UserSerializer(serializers.ModelSerializer):
 
