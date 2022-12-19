@@ -102,11 +102,7 @@ class UserSerializer(serializers.ModelSerializer):
                   'bio',
                   'role')
 
-    def validate(self, data):
-        if data.get('username') == 'me':
-            raise serializers.ValidationError(
-                'Username указан неверно!')
-        return data
+
 
 
 class UserRegSerializer(serializers.ModelSerializer):
@@ -114,6 +110,12 @@ class UserRegSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email')
+
+    def validate(self, data):
+        if data.get('username') == 'me':
+            raise serializers.ValidationError(
+                'Username указан неверно!')
+        return data
 
 
 class UserTokenSerializer(serializers.ModelSerializer):
