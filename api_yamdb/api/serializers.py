@@ -1,13 +1,18 @@
 from rest_framework import serializers
+
+
 from rest_framework.exceptions import ValidationError
 from reviews.models import Category, Genre, Title, Comments, Review, User
 from django.shortcuts import get_object_or_404
 
+
 from rest_framework.exceptions import ValidationError
+
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
+
         model = Category
         fields = ('name', 'slug')
         lookup_field = 'slug'
@@ -29,6 +34,7 @@ class TitlePostSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         slug_field='slug'
     )
+
     rating = serializers.IntegerField(required=False)
 
     class Meta:
@@ -50,6 +56,7 @@ class TitleGetSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
 
     class Meta:
+
         model = Title
         fields = ('id', 'name', 'year', 'description',
                   'genre', 'category', 'rating',)

@@ -44,15 +44,8 @@ class User(AbstractUser):
         choices=ROLES,
         default='user'
     )
+    
 
-    class Meta:
-        ordering = ('id',)
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_username_email'
-            )
-        ]
 
     def __str__(self):
         return self.username
@@ -72,10 +65,10 @@ class User(AbstractUser):
             or self.is_superuser
         )
 
-
 class Category(models.Model):
 
-    name = models.CharField(max_length=256, verbose_name='Категория')
+    name = models.CharField(max_length=256,
+                            verbose_name='Категория',)
     slug = models.SlugField(
         max_length=50,
         unique=True,
@@ -89,7 +82,8 @@ class Category(models.Model):
 
 class Genre(models.Model):
 
-    name = models.CharField(max_length=50, verbose_name='Жанр')
+    name = models.CharField(max_length=50,
+                            verbose_name='Жанр', )
     slug = models.SlugField(
         max_length=50,
         unique=True,
@@ -102,22 +96,33 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=128, verbose_name='Название')
-    year = models.IntegerField(default=1,
-                               validators=[
-                                   MaxValueValidator(date.today().year),
-                                   MinValueValidator(1)
-                               ],
-                               verbose_name='Дата выхода')
-    description = models.TextField(max_length=256, verbose_name='Описание')
-    genre = models.ManyToManyField(Genre,
-                                   related_name='genres',
-                                   through='GenreTitle',
-                                   blank=True)
-    category = models.ForeignKey(Category,
-                                 default='Категория не определена',
-                                 on_delete=models.SET_DEFAULT,
-                                 related_name='titles')
+    name = models.CharField(max_length=128,
+                            verbose_name='Название',
+                            )
+    year = models.IntegerField(
+        default=1,
+        validators=[
+            MaxValueValidator(date.today().year),
+            MinValueValidator(1)
+        ],
+        verbose_name='Дата выхода',
+    )
+    description = models.TextField(
+        max_length=256,
+        verbose_name='Описание',
+    )
+    genre = models.ManyToManyField(
+        Genre,
+        related_name='genres',
+        through='GenreTitle',
+        blank=True,
+    )
+    category = models.ForeignKey(
+        Category,
+        default='Категория не определена',
+        on_delete=models.SET_DEFAULT,
+        related_name='titles',
+    )
 
     class Meta:
         ordering = ('year',)
@@ -127,8 +132,8 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
-    title = models.ForeignKey(Title, on_delete=models.CASCADE)
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    title_id = models.ForeignKey(Title, on_delete=models.CASCADE, db_column='title_id')
+    genre_id = models.ForeignKey(Genre, on_delete=models.CASCADE, db_column='genre_id')
 
 
 class Review(models.Model):
@@ -138,6 +143,8 @@ class Review(models.Model):
         verbose_name='Произведение',
         on_delete=models.CASCADE,
         related_name='reviews',
+        db_column='title_id',
+
     )
     text = models.TextField()
     author = models.ForeignKey(
@@ -174,6 +181,7 @@ class Comments(models.Model):
         verbose_name='Дата публикации',
         related_name='comments',
         on_delete=models.CASCADE,
+        db_column='review_id'
     )
     text = models.TextField()
     author = models.ForeignKey(

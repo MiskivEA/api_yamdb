@@ -57,6 +57,7 @@ class GenreViewSet(MyViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
+    serializer_class = TitleGetSerializer
     permission_classes = [AdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
@@ -69,6 +70,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return TitlePostSerializer
         return TitleGetSerializer
+
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -139,7 +141,6 @@ class UserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
             serializer.save(role=user.role, partial=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 @api_view(['POST'])
 def registration(request):
