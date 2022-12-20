@@ -1,33 +1,24 @@
-from rest_framework import viewsets, filters, mixins, status, permissions
-
-from rest_framework.decorators import action, permission_classes
-from rest_framework.response import Response
-from rest_framework.permissions import (IsAuthenticated)
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.decorators import api_view
-from rest_framework_simplejwt.tokens import AccessToken
-
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg
-from django.core.mail import send_mail
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
+from reviews.models import Category, Comments, Genre, Review, Title, User
 
-
-from reviews.models import Category, Genre, Title, Review, Comments, User
-from .serializers import (CategorySerializer,
-                          GenreSerializer,
-                          TitlePostSerializer,
-                          TitleGetSerializer,
-                          CommentsSerializer,
-                          ReviewSerializer,
-                          UserSerializer,
-                          UserTokenSerializer, UserRegSerializer)
-from .permissions import (CommentsReviewPermission,
-                          AnonimUserAdminPermission,
-                          AdminOrReadOnly,
-                          IsAdminPermission)
 from .filters import TitleFilter
+from .permissions import (AdminOrReadOnly, AnonimUserAdminPermission,
+                          CommentsReviewPermission, IsAdminPermission)
+from .serializers import (CategorySerializer, CommentsSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleGetSerializer, TitlePostSerializer,
+                          UserRegSerializer, UserSerializer,
+                          UserTokenSerializer)
 
 
 class MyViewSet(
@@ -72,7 +63,6 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleGetSerializer
 
 
-
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -110,9 +100,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class UserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
-                  mixins.ListModelMixin, mixins.DestroyModelMixin,
-                  viewsets.GenericViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminPermission]
@@ -120,6 +108,7 @@ class UserViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin,
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('username',)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     @action(
         detail=False,

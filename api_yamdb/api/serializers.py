@@ -1,13 +1,9 @@
-from rest_framework import serializers
+import re
 
-
-from rest_framework.exceptions import ValidationError
-from reviews.models import Category, Genre, Title, Comments, Review, User
 from django.shortcuts import get_object_or_404
-
-
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-
+from reviews.models import Category, Comments, Genre, Review, Title, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -103,18 +99,31 @@ class UserSerializer(serializers.ModelSerializer):
                   'role')
 
 
+class UserRegSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150, required=True)
+    email = serializers.EmailField(max_length=254, required=True)
 
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Недопустимое имя пользователя')
+        if not re.fullmatch(r'^[\w.@+-]+', value):
+            raise serializers.ValidationError('Некорректное значения поля')
 
-class UserRegSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('username', 'email')
+        return value
 
     def validate(self, data):
-        if data.get('username') == 'me':
+        if_email = User.objects.filter(email=data.get('email')).exists()
+        if_username = User.objects.filter(
+            username=data.get('username')).exists()
+        if User.objects.filter(
+                email=data.get('email'),
+                username=data.get('username')).exists():
+            return data
+
+        if (if_email or if_username):
             raise serializers.ValidationError(
-                'Username указан неверно!')
+                'Почта  или имя пользователя заняты')
         return data
 
 

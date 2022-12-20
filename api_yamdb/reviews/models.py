@@ -1,9 +1,9 @@
 from datetime import date
 
-from django.db import models
-from django.core.validators import (MinValueValidator,
-                                    MaxValueValidator, RegexValidator)
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import (MaxValueValidator, MinValueValidator,
+                                    RegexValidator)
+from django.db import models
 
 
 class User(AbstractUser):
@@ -44,8 +44,6 @@ class User(AbstractUser):
         choices=ROLES,
         default='user'
     )
-    
-
 
     def __str__(self):
         return self.username
@@ -64,6 +62,7 @@ class User(AbstractUser):
             self.role == 'admin'
             or self.is_superuser
         )
+
 
 class Category(models.Model):
 
@@ -132,8 +131,12 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
-    title_id = models.ForeignKey(Title, on_delete=models.CASCADE, db_column='title_id')
-    genre_id = models.ForeignKey(Genre, on_delete=models.CASCADE, db_column='genre_id')
+    title_id = models.ForeignKey(Title,
+                                 on_delete=models.CASCADE,
+                                 db_column='title_id')
+    genre_id = models.ForeignKey(Genre,
+                                 on_delete=models.CASCADE,
+                                 db_column='genre_id')
 
 
 class Review(models.Model):
