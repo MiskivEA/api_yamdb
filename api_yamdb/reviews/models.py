@@ -1,67 +1,10 @@
 from datetime import date
 
-from django.contrib.auth.models import AbstractUser
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
 
-
-class User(AbstractUser):
-    ROLES = (
-        ('user', 'Пользователь'),
-        ('moderator', 'Модератор'),
-        ('admin', 'Администратор'),
-    )
-    username = models.CharField(
-        max_length=150,
-        verbose_name='Имя пользователя',
-        unique=True,
-        validators=[RegexValidator(
-            regex=r'^[\w.@+-]+$')]
-    )
-    email = models.EmailField(
-        max_length=254,
-        verbose_name='email',
-        unique=True
-    )
-    first_name = models.CharField(
-        max_length=150,
-        verbose_name='имя',
-        blank=True
-    )
-    last_name = models.CharField(
-        max_length=150,
-        verbose_name='фамилия',
-        blank=True
-    )
-    bio = models.TextField(
-        verbose_name='биография',
-        blank=True
-    )
-    role = models.CharField(
-        max_length=150,
-        verbose_name='роль',
-        choices=ROLES,
-        default='user'
-    )
-
-    def __str__(self):
-        return self.username
-
-    @property
-    def is_user(self):
-        return self.role == 'user'
-
-    @property
-    def is_moderator(self):
-        return self.role == 'moderator'
-
-    @property
-    def is_admin(self):
-        return (
-            self.role == 'admin'
-            or self.is_superuser
-        )
+from users.models import User
 
 
 class Category(models.Model):
@@ -113,7 +56,6 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre,
         related_name='genres',
-        through='GenreTitle',
         blank=True,
     )
     category = models.ForeignKey(
@@ -130,17 +72,7 @@ class Title(models.Model):
         return self.name
 
 
-class GenreTitle(models.Model):
-    title_id = models.ForeignKey(Title,
-                                 on_delete=models.CASCADE,
-                                 db_column='title_id')
-    genre_id = models.ForeignKey(Genre,
-                                 on_delete=models.CASCADE,
-                                 db_column='genre_id')
-
-
 class Review(models.Model):
-    id = models.AutoField(primary_key=True)
     title = models.ForeignKey(
         Title,
         verbose_name='Произведение',
@@ -178,7 +110,6 @@ class Review(models.Model):
 
 
 class Comments(models.Model):
-    id = models.AutoField(primary_key=True)
     review = models.ForeignKey(
         Review,
         verbose_name='Дата публикации',
