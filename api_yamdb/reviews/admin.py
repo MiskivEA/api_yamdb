@@ -2,7 +2,7 @@ from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 
-from .models import Category, Comments, Genre, GenreTitle, Review, Title, User
+from .models import Category, Comments, Genre, Review, Title, User
 
 
 class UserResource(resources.ModelResource):
@@ -77,18 +77,6 @@ class GenreResource(resources.ModelResource):
 @admin.register(Genre)
 class GenreAdmin(ImportExportModelAdmin):
     list_display = ('name', 'slug')
-
-
-class GenreTitleResource(resources.ModelResource):
-    class Meta:
-        Model = GenreTitle
-        fields = ('id', 'title_id', 'genre_id')
-
-
-@admin.register(GenreTitle)
-class GenreTitleAdmin(ImportExportModelAdmin):
-    # resource_classes = GenreTitleResource
-    list_display = ('title_id', 'genre_id')
 
 
 class CommentResource(resources.ModelResource):

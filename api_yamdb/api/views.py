@@ -12,8 +12,9 @@ from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Comments, Genre, Review, Title, User
 
 from .filters import TitleFilter
-from .permissions import (AdminOrReadOnly, AnonimUserAdminPermission,
-                          CommentsReviewPermission, IsAdminPermission)
+from .permissions import (AdminOrReadOnly,
+                          CommentsReviewPermission,
+                          IsAdminPermission)
 from .serializers import (CategorySerializer, CommentsSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleGetSerializer, TitlePostSerializer,
@@ -52,7 +53,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = [AdminOrReadOnly]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    permission_classes = (AnonimUserAdminPermission,)
 
     def get_queryset(self):
         return Title.objects.all().annotate(rating=Avg('reviews__score'),)

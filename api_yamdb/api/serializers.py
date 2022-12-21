@@ -1,8 +1,7 @@
 import re
 
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+
 from reviews.models import Category, Comments, Genre, Review, Title, User
 
 
@@ -60,23 +59,22 @@ class TitleGetSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(read_only=True)
-    title = serializers.SlugRelatedField(
-        read_only=True, slug_field='id')
 
     class Meta:
         model = Review
-        fields = ('title', 'id', 'text', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
+        """Запрещает пользователям оставлять повторные отзывы."""
         request = self.context['request']
-        author = request.user
-        title_id = self.context['view'].kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        if request.method == 'POST':
-            if Review.objects.filter(title=title, author=author).exists():
-                raise ValidationError(
-                    'Вы не можете повторно подписаться на автора'
-                )
+        author = self.context.get('request').user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        if not request.method == 'POST':
+            return data
+        if Review.objects.filter(author=author, title=title_id).exists():
+            raise serializers.ValidationError(
+                'Вы уже оставляли отзыв на это произведение'
+            )
         return data
 
 
@@ -109,21 +107,19 @@ class UserRegSerializer(serializers.Serializer):
                 'Недопустимое имя пользователя')
         if not re.fullmatch(r'^[\w.@+-]+', value):
             raise serializers.ValidationError('Некорректное значения поля')
-
         return value
 
     def validate(self, data):
-        if_email = User.objects.filter(email=data.get('email')).exists()
-        if_username = User.objects.filter(
-            username=data.get('username')).exists()
-        if User.objects.filter(
-                email=data.get('email'),
-                username=data.get('username')).exists():
+        """ 1) если email и username заняты -> возвращаем data
+            2) если email занят, а username нет -> выдаем ошибку
+            3) если username занят, email нет -> выдаем ошибку"""
+        if User.objects.filter(email=data.get('email'),
+                               username=data.get('username')).exists():
             return data
-
-        if (if_email or if_username):
-            raise serializers.ValidationError(
-                'Почта  или имя пользователя заняты')
+        if (User.objects.filter(email=data.get('email')).exists()
+                or User.objects.filter(
+                    username=data.get('username')).exists()):
+            raise serializers.ValidationError('sdgsadgsgc')
         return data
 
 
