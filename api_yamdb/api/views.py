@@ -139,7 +139,10 @@ def registration(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.data.get('username')
     email = serializer.data.get('email')
-    user, _ = User.objects.get_or_create(email=email, username=username)
+    user, created = User.objects.get_or_create(email=email, username=username)
+    if not created:
+        jwt_token = AccessToken.for_user(user)
+        return Response({'token': str(jwt_token)}, status=status.HTTP_200_OK)
     confirmation_code = default_token_generator.make_token(user)
 
     mail = (

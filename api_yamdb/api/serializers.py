@@ -111,15 +111,32 @@ class UserRegSerializer(serializers.Serializer):
 
     def validate(self, data):
         """ 1) если email и username заняты -> возвращаем data
-            2) если email занят, а username нет -> выдаем ошибку
-            3) если username занят, email нет -> выдаем ошибку"""
-        if User.objects.filter(email=data.get('email'),
-                               username=data.get('username')).exists():
+            2) если username занят, проверяем, правильную ли почту передали
+             -> выдаем ошибку если нет
+            2) если email занят, проверяем, свободен ли юзернейм
+             -> выдаем ошибку если нет"""
+
+        email_taken = User.objects.filter(
+            email=data.get('email')).exists()
+        username_taken = User.objects.filter(
+            username=data.get('username')).exists()
+        email_username_taken = User.objects.filter(
+            email=data.get('email'),
+            username=data.get('username')).exists()
+
+        if email_username_taken:
             return data
-        if (User.objects.filter(email=data.get('email')).exists()
-                or User.objects.filter(
-                    username=data.get('username')).exists()):
-            raise serializers.ValidationError('sdgsadgsgc')
+        if username_taken:
+            obj = User.objects.get(username=data.get('username'))
+            if obj.email != data.get('email'):
+                raise serializers.ValidationError(
+                    'содержит `username` зарегистрированного пользователя '
+                    'и несоответствующий ему `email`')
+        if email_taken and not username_taken:
+            raise serializers.ValidationError(
+                'Запрос содержит email зарегистрированного'
+                'пользователя и незанятый username'
+            )
         return data
 
 
