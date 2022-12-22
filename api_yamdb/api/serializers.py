@@ -110,33 +110,26 @@ class UserRegSerializer(serializers.Serializer):
             raise serializers.ValidationError('Некорректное значения поля')
         return value
 
-    def validate(self, data):
-        """ 1) если email и username заняты -> возвращаем data
-            2) если username занят, проверяем, правильную ли почту передали
-             -> выдаем ошибку если нет
-            2) если email занят, проверяем, свободен ли юзернейм
-             -> выдаем ошибку если нет"""
 
+    def validate(self, data):
+        """Если юзернейм или мыло заняты, а пользователя
+         именно с таким мылом и почтой -  нет - ошибка.
+         Если юзернейм или мыло заняты, и пользователь именно с
+         такими данными есть - разрешить высылку повторного кода подтверждения
+         """
         email_taken = User.objects.filter(
             email=data.get('email')).exists()
         username_taken = User.objects.filter(
             username=data.get('username')).exists()
-        email_username_taken = User.objects.filter(
+        email_exists = User.objects.filter(
             email=data.get('email'),
             username=data.get('username')).exists()
 
-        if email_username_taken:
-            return data
-        if username_taken:
-            obj = User.objects.get(username=data.get('username'))
-            if obj.email != data.get('email'):
-                raise serializers.ValidationError(
-                    'содержит `username` зарегистрированного пользователя '
-                    'и несоответствующий ему `email`')
-        if email_taken and not username_taken:
+        if (email_taken or username_taken) and not email_exists:
             raise serializers.ValidationError(
-                'Запрос содержит email зарегистрированного'
-                'пользователя и незанятый username'
+                'Запрос содержит email или username'
+                'зарегистрированного пользователя,'
+                'либо данные принадлежат разным пользователям'
             )
         return data
 

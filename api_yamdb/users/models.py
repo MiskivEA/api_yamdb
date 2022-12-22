@@ -44,7 +44,7 @@ class User(AbstractUser):
         blank=True
     )
     role = models.CharField(
-        max_length=150,
+        max_length=max([len(role[0]) for role in ROLES]),
         verbose_name='роль',
         choices=ROLES,
         default=ROLE_USER
