@@ -110,7 +110,6 @@ class UserRegSerializer(serializers.Serializer):
             raise serializers.ValidationError('Некорректное значения поля')
         return value
 
-
     def validate(self, data):
         """Если юзернейм или мыло заняты, а пользователя
          именно с таким мылом и почтой -  нет - ошибка.
@@ -121,11 +120,11 @@ class UserRegSerializer(serializers.Serializer):
             email=data.get('email')).exists()
         username_taken = User.objects.filter(
             username=data.get('username')).exists()
-        email_exists = User.objects.filter(
+        user_exists = User.objects.filter(
             email=data.get('email'),
             username=data.get('username')).exists()
 
-        if (email_taken or username_taken) and not email_exists:
+        if (email_taken or username_taken) and not user_exists:
             raise serializers.ValidationError(
                 'Запрос содержит email или username'
                 'зарегистрированного пользователя,'
