@@ -135,14 +135,13 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def registration(request):
+    """Создание пользователя в БД на основе полученных данных и
+    отправка кода подтверждения на почту. """
     serializer = UserRegSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     username = serializer.data.get('username')
     email = serializer.data.get('email')
-    user, created = User.objects.get_or_create(email=email, username=username)
-    if not created:
-        jwt_token = AccessToken.for_user(user)
-        return Response({'token': str(jwt_token)}, status=status.HTTP_200_OK)
+    user, _ = User.objects.get_or_create(email=email, username=username)
     confirmation_code = default_token_generator.make_token(user)
 
     mail = (
