@@ -7,14 +7,15 @@ from django.db import models
 
 
 class User(AbstractUser):
-    ROLES = (
-        ('user', 'Пользователь'),
-        ('moderator', 'Модератор'),
-        ('admin', 'Администратор'),
-    )
     ROLE_USER = 'user'
     ROLE_MODERATOR = 'moderator'
     ROLE_ADMIN = 'admin'
+
+    ROLES = (
+        (ROLE_USER, 'Пользователь'),
+        (ROLE_MODERATOR, 'Модератор'),
+        (ROLE_ADMIN, 'Администратор'),
+    )
 
     username = models.CharField(
         max_length=150,
@@ -46,7 +47,7 @@ class User(AbstractUser):
         max_length=150,
         verbose_name='роль',
         choices=ROLES,
-        default='user'
+        default=ROLE_USER
     )
 
     def __str__(self):
